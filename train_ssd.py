@@ -45,12 +45,6 @@ n_classes = 20 # Number of positive classes, e.g. 20 for Pascal VOC, 80 for MS C
 scales_pascal = [0.1, 0.2, 0.37, 0.54, 0.71, 0.88, 1.05] # The anchor box scaling factors used in the original SSD300 for the Pascal VOC datasets
 scales_coco = [0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05] # The anchor box scaling factors used in the original SSD300 for the MS COCO datasets
 scales = scales_pascal
-# aspect_ratios = [[1.0, 2.0, 0.5],
-#                  [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
-#                  [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
-#                  [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
-#                  [1.0, 2.0, 0.5],
-#                  [1.0, 2.0, 0.5]] # The anchor box aspect ratios used in the original SSD300; the order matters
 aspect_ratios = [[1.0, 2.0, 0.5, 3.0, 1.0/3.0, 4.0, 0.25],
                  [1.0, 2.0, 0.5, 3.0, 1.0/3.0, 4.0, 0.25],
                  [1.0, 2.0, 0.5, 3.0, 1.0/3.0],
@@ -63,21 +57,6 @@ offsets = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5] # The offsets of the first anchor box c
 clip_boxes = False # Whether or not to clip the anchor boxes to lie entirely within the image boundaries
 variances = [0.1, 0.1, 0.2, 0.2] # The variances by which the encoded target coordinates are divided as in the original implementation
 normalize_coords = True
-
-def download_from_cloud(bucket_name, prefix, dl_dir):
-    # bucket_name = 'your-bucket-name'
-    # prefix = 'your-bucket-directory/'
-    # dl_dir = 'your-local-directory/'
-    if not os.path.exists(dl_dir):
-        os.makedirs(dl_dir)
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name=bucket_name)
-    blobs = bucket.list_blobs(prefix=prefix)  # Get list of files
-    for blob in blobs:
-        filename = blob.name.split("/")[-1]
-        print("Downloading: " + filename)
-        blob.download_to_filename(dl_dir + filename)  # Download
-        print("Local Path: " + dl_dir+filename)
 
 def main(job_dir, **args):
     ##Setting up the path for saving logs
@@ -142,7 +121,6 @@ def main(job_dir, **args):
         VOC_2007_trainval_image_set_filename = VOC_2007_trainval_image_set_dir + '/trainval.txt'
         VOC_2007_test_image_set_filename = VOC_2007_test_image_set_dir + '/test.txt'
 
-        # exit(0)
         # The XML parser needs to now what object class names to look for and in which order to map them to integers.
         classes = ['background',
                'aeroplane', 'bicycle', 'bird', 'boat',
@@ -176,21 +154,6 @@ def main(job_dir, **args):
                       verbose=False)
         print("Done")
         print("================================================================")
-
-        # Optional: Convert the dataset into an HDF5 dataset. This will require more disk space, but will
-        # speed up the training. Doing this is not relevant in case you activated the `load_images_into_memory`
-        # option in the constructor, because in that cas the images are in memory already anyway. If you don't
-        # want to create HDF5 datasets, comment out the subsequent two function calls.
-
-        # train_dataset.create_hdf5_dataset(file_path='dataset_pascal_voc_07+12_trainval.h5',
-        #                                   resize=False,
-        #                                   variable_image_size=True,
-        #                                   verbose=True)
-
-        # val_dataset.create_hdf5_dataset(file_path='dataset_pascal_voc_07_test.h5',
-        #                                 resize=False,
-        #                                 variable_image_size=True,
-        #                                 verbose=True)
 
         # 3: Set the batch size.
         batch_size = 32 # Change the batch size if you like, or if you run into GPU memory issues.
@@ -268,30 +231,12 @@ def main(job_dir, **args):
             else:
                 return 0.00001
 
-        # Define model callbacks.
-
-        # TODO: Set the filepath under which you want to save the model.
-        model_checkpoint = ModelCheckpoint(filepath=logs_dir+'/ssd300_pascal_07+12_epoch-{epoch:02d}_loss-{loss:.4f}.h5',
-                                           monitor='val_loss',
-                                           verbose=1,
-                                           save_best_only=True,
-                                           save_weights_only=False,
-                                           mode='auto',
-                                           period=1)
-        #model_checkpoint.best =
-
-        #csv_logger = CSVLogger(filename=logs_dir+'/ssd300_pascal_07+12_training_log.csv',
-        #                      separator=',',
-        #                     append=True)
-
         learning_rate_scheduler = LearningRateScheduler(schedule=lr_schedule,
                                                         verbose=1)
 
         terminate_on_nan = TerminateOnNaN()
 
-        callbacks = [# model_checkpoint,
-                     # csv_logger,
-                     learning_rate_scheduler,
+        callbacks = [learning_rate_scheduler,
                      terminate_on_nan]
 
 
@@ -299,8 +244,6 @@ def main(job_dir, **args):
         initial_epoch   = 0
         final_epoch     = 120
         steps_per_epoch = 500
-
-        #model.summary()
 
         history = model.fit_generator(generator=train_generator,
                                       steps_per_epoch=steps_per_epoch,
@@ -315,94 +258,7 @@ def main(job_dir, **args):
         with file_io.FileIO(model_name, mode='rb') as input_f:
             with file_io.FileIO("gs://deeplearningteam11/" + model_name, mode='w+') as output_f:
                 output_f.write(input_f.read())
-
-
-        # 1: Set the generator for the predictions.
-
-        predict_generator = val_dataset.generate(batch_size=1,
-                                                 shuffle=True,
-                                                 transformations=[convert_to_3_channels,
-                                                                  resize],
-                                                 label_encoder=None,
-                                                 returns={'processed_images',
-                                                          'filenames',
-                                                          'inverse_transform',
-                                                          'original_images',
-                                                          'original_labels'},
-                                                 keep_images_without_gt=False)
-
-        # 2: Generate samples.
-
-        batch_images, batch_filenames, batch_inverse_transforms, batch_original_images, batch_original_labels = next(predict_generator)
-
-        i = 0 # Which batch item to look at
-
-        print("Image:", batch_filenames[i])
-        print()
-        print("Ground truth boxes:\n")
-        print(np.array(batch_original_labels[i]))
-
-        # 3: Make predictions.
-
-        y_pred = model.predict(batch_images)
-
-        # 4: Decode the raw predictions in `y_pred`.
-
-        y_pred_decoded = decode_detections(y_pred,
-                                           confidence_thresh=0.5,
-                                           iou_threshold=0.4,
-                                           top_k=200,
-                                           normalize_coords=normalize_coords,
-                                           img_height=img_height,
-                                           img_width=img_width)
-
-        # 5: Convert the predictions for the original image.
-
-        y_pred_decoded_inv = apply_inverse_transforms(y_pred_decoded, batch_inverse_transforms)
-
-        np.set_printoptions(precision=2, suppress=True, linewidth=90)
-        print("Predicted boxes:\n")
-        print('   class   conf xmin   ymin   xmax   ymax')
-        print(y_pred_decoded_inv[i])
-
-        # 5: Draw the predicted boxes onto the image
-
-        # Set the colors for the bounding boxes
-        #colors = plt.cm.hsv(np.linspace(0, 1, n_classes+1)).tolist()
-        classes = ['background',
-                   'aeroplane', 'bicycle', 'bird', 'boat',
-                   'bottle', 'bus', 'car', 'cat',
-                   'chair', 'cow', 'diningtable', 'dog',
-                   'horse', 'motorbike', 'person', 'pottedplant',
-                   'sheep', 'sofa', 'train', 'tvmonitor']
-
-        #plt.figure(figsize=(20,12))
-        #plt.imshow(batch_original_images[i])
-
-        #current_axis = plt.gca()
-
-        '''
-        for box in batch_original_labels[i]:
-            xmin = box[1]
-            ymin = box[2]
-            xmax = box[3]
-            ymax = box[4]
-            label = '{}'.format(classes[int(box[0])])
-            current_axis.add_patch(plt.Rectangle((xmin, ymin), xmax-xmin, ymax-ymin, color='green', fill=False, linewidth=2))
-            current_axis.text(xmin, ymin, label, size='x-large', color='white', bbox={'facecolor':'green', 'alpha':1.0})
-
-        for box in y_pred_decoded_inv[i]:
-            xmin = box[2]
-            ymin = box[3]
-            xmax = box[4]
-            ymax = box[5]
-            color = colors[int(box[0])]
-            label = '{}: {:.2f}'.format(classes[int(box[0])], box[1])
-            current_axis.add_patch(plt.Rectangle((xmin, ymin), xmax-xmin, ymax-ymin, color=color, fill=False, linewidth=2))
-            current_axis.text(xmin, ymin, label, size='x-large', color='white', bbox={'facecolor':color, 'alpha':1.0})
-
-        plt.show()
-        '''
+                
 
 
 ##Running the app

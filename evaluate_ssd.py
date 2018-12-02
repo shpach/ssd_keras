@@ -22,22 +22,6 @@ from eval_utils.average_precision_evaluator import Evaluator
 import tensorflow as tf
 from tensorflow.python.lib.io import file_io
 
-def download_from_cloud(bucket_name, prefix, dl_dir):
-    # bucket_name = 'your-bucket-name'
-    # prefix = 'your-bucket-directory/'
-    # dl_dir = 'your-local-directory/'
-    if not os.path.exists(dl_dir):
-        os.makedirs(dl_dir)
-    storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name=bucket_name)
-    blobs = bucket.list_blobs(prefix=prefix)  # Get list of files
-    for blob in blobs:
-        filename = blob.name.split("/")[-1]
-        print("Downloading: " + filename)
-        blob.download_to_filename(dl_dir + filename)  # Download
-        print("Local Path: " + dl_dir+filename)
-
-
 def main():
 
 	# Set a few configuration parameters.
@@ -47,7 +31,7 @@ def main():
 	model_mode = 'training'
 
 	# Set the path to the `.h5` file of the model to be loaded.
-	model_file = file_io.FileIO('gs://deeplearningteam11/model.h5', mode='rb')
+	model_file = file_io.FileIO('gs://deeplearningteam11/vgg19BNmodel.h5', mode='rb')
 
 	# Store model locally on instance
 	model_path = 'model.h5'
@@ -93,7 +77,7 @@ def main():
 
 
 	with tf.device('/device:GPU:0'):
-		print('TEST')
+		# Testing results
 		te_dataset.parse_xml(images_dirs=[te_Pascal_VOC_dataset_images_dir],
 		                  image_set_filenames=[te_Pascal_VOC_dataset_image_set_filename],
 		                  annotations_dirs=[te_Pascal_VOC_dataset_annotations_dir],
@@ -141,8 +125,9 @@ def main():
 		                  exclude_truncated=False,
 		                  exclude_difficult=True,
 		                  ret=False,
-		                  verbose=True)
+		                  verbose=False)
 
+		# Training results
 		tr_evaluator = Evaluator(model=model,
 		                      n_classes=n_classes,
 		                      data_generator=tr_dataset,
@@ -162,7 +147,7 @@ def main():
 		                    return_precisions=True,
 		                    return_recalls=True,
 		                    return_average_precisions=True,
-		                    verbose=True)
+		                    verbose=False)
 
 		mean_average_precision, average_precisions, precisions, recalls = tr_results
 
