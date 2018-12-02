@@ -314,12 +314,12 @@ def ssd_300(image_size,
     conv11_2 = BatchNormalization()(conv11_2)
 
     # Feed conv4_4 into the L2 normalization layer
-    # conv4_4_norm = L2Normalization(gamma_init=20, name='conv4_4_norm')(inresv2.get_layer('block35_8_ac').output)
     conv4_4_norm = L2Normalization(gamma_init=20, name='conv4_4_norm')(vgg19.get_layer('block4_conv4').output)
+    # conv4_4_norm = L2Normalization(gamma_init=20, name='conv4_4_norm')(inresv2.get_layer('block35_8_ac').output)
 
     ### Build the convolutional predictor layers on top of the base network
 
-    # We precidt `n_classes` confidence values for each box, hence the confidence predictors have depth `n_boxes * n_classes`
+    # We predict `n_classes` confidence values for each box, hence the confidence predictors have depth `n_boxes * n_classes`
     # Output shape of the confidence layers: `(batch, height, width, n_boxes * n_classes)`
     conv4_4_norm_mbox_conf = Conv2D(n_boxes[0] * n_classes, (3, 3), padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='conv4_4_norm_mbox_conf')(conv4_4_norm)
     fc7_mbox_conf = Conv2D(n_boxes[1] * n_classes, (3, 3), padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='fc7_mbox_conf')(fc7)
