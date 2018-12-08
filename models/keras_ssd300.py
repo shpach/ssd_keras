@@ -19,7 +19,7 @@ limitations under the License.
 from __future__ import division
 import numpy as np
 from keras.models import Model, Sequential
-from keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, ZeroPadding2D, Reshape, Concatenate, BatchNormalization
+from keras.layers import Input, Lambda, Activation, Conv2D, MaxPooling2D, ZeroPadding2D, Reshape, Concatenate, BatchNormalization, ReLU
 from keras.applications.vgg19 import VGG19, preprocess_input
 # from keras.applications.inception_resnet_v2 import InceptionResNetV2, preprocess_input
 from keras.regularizers import l2
@@ -275,7 +275,7 @@ def ssd_300(image_size,
 
     vgg19 = VGG19(weights='imagenet', include_top=False, input_tensor=x1, pooling=None)
     for layer in vgg19.layers:
-        layer.trainable = False
+        layer.trainable = True
     
     # inresv2 = InceptionResNetV2(weights='imagenet', include_top=False, input_tensor=x1, pooling=None)
     # for layer in inresv2.layers:
@@ -286,31 +286,41 @@ def ssd_300(image_size,
 
     fc6 = Conv2D(1024, (3, 3), dilation_rate=(6, 6), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='fc6')(pool5)
     # fc6 = Conv2D(1024, (3, 3), dilation_rate=(6, 6), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='fc6')(inresv2.get_layer('conv_7b_ac').output)
+    fc6 = ReLU()(fc6)
     fc6 = BatchNormalization()(fc6)
     fc7 = Conv2D(1024, (1, 1), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='fc7')(fc6)
+    fc7 = ReLU()(fc7)
     fc7 = BatchNormalization()(fc7)
 
     conv8_1 = Conv2D(256, (1, 1), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='conv8_1')(fc7)
     conv8_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv8_padding')(conv8_1)
+    conv8_1 = ReLU()(conv8_1)
     conv8_1 = BatchNormalization()(conv8_1)
     conv8_2 = Conv2D(512, (3, 3), strides=(1, 1), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='conv8_2')(conv8_1)
+    conv8_2 = ReLU()(conv8_2)
     conv8_2 = BatchNormalization()(conv8_2)
 
 
     conv9_1 = Conv2D(128, (1, 1), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='conv9_1')(conv8_2)
     conv9_1 = ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv9_padding')(conv9_1)
+    conv9_1 = ReLU()(conv9_1)
     conv9_1 = BatchNormalization()(conv9_1)
     conv9_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='conv9_2')(conv9_1)
+    conv9_2 = ReLU()(conv9_2)
     conv9_2 = BatchNormalization()(conv9_2)
 
     conv10_1 = Conv2D(128, (1, 1), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='conv10_1')(conv9_2)
+    conv10_1 = ReLU()(conv10_1)
     conv10_1 = BatchNormalization()(conv10_1)
     conv10_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='conv10_2')(conv10_1)
+    conv10_2 = ReLU()(conv10_2)
     conv10_2 = BatchNormalization()(conv10_2)
 
     conv11_1 = Conv2D(128, (1, 1), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='conv11_1')(conv10_2)
+    conv11_1 = ReLU()(conv11_1)
     conv11_1 = BatchNormalization()(conv11_1)
     conv11_2 = Conv2D(256, (3, 3), strides=(1, 1), activation='relu', padding='same', kernel_initializer='he_normal', kernel_regularizer=l2(l2_reg), name='conv11_2')(conv11_1)
+    conv11_2 = ReLU()(conv11_2)
     conv11_2 = BatchNormalization()(conv11_2)
 
     # Feed conv4_4 into the L2 normalization layer

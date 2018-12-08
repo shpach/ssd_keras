@@ -95,7 +95,7 @@ def main():
 
 		te_results = te_evaluator(img_height=img_height,
 		                    img_width=img_width,
-		                    batch_size=8,
+		                    batch_size=64,
 		                    data_generator_mode='resize',
 		                    round_confidences=False,
 		                    matching_iou_threshold=0.5,
@@ -133,9 +133,9 @@ def main():
 		                      data_generator=tr_dataset,
 		                      model_mode=model_mode)
 
-		tr_results = te_evaluator(img_height=img_height,
+		tr_results = tr_evaluator(img_height=img_height,
 		                    img_width=img_width,
-		                    batch_size=8,
+		                    batch_size=64,
 		                    data_generator_mode='resize',
 		                    round_confidences=False,
 		                    matching_iou_threshold=0.5,
