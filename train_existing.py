@@ -86,10 +86,25 @@ def main(job_dir, **args):
                         subtract_mean=mean_color,
                         swap_channels=swap_channels)
 
-        adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        # Set the path to the `.h5` file of the model to be loaded.
+        model_file = file_io.FileIO('gs://deeplearningteam11/vgg19BNmodel.h5', mode='rb')
+
+        # Store model locally on instance
+        model_path = 'model.h5'
+        with open(model_path, 'wb') as f:
+          f.write(model_file.read())
+        model_file.close()
+
         ssd_loss = SSDLoss(neg_pos_ratio=3, alpha=1.0)
 
-        model.compile(optimizer=adam, loss=ssd_loss.compute_loss)
+        model = load_model(model_path, custom_objects={'AnchorBoxes': AnchorBoxes,
+                                                 'L2Normalization': L2Normalization,
+                                                 'DecodeDetections': DecodeDetections,
+                                                 'compute_loss': ssd_loss.compute_loss})
+
+        for layer in model.layers:
+          layer.trainable = True
+
         model.summary()
 
         # 1: Instantiate two `DataGenerator` objects: One for training, one for validation.
@@ -224,12 +239,13 @@ def main(job_dir, **args):
         # Define a learning rate schedule.
 
         def lr_schedule(epoch):
-            if epoch < 80:
-                return 0.001
-            elif epoch < 100:
-                return 0.0001
-            else:
-                return 0.00001
+            return 1e-6
+            # if epoch < 80:
+            #     return 0.001
+            # elif epoch < 100:
+            #     return 0.0001
+            # else:
+            #     return 0.00001
 
         learning_rate_scheduler = LearningRateScheduler(schedule=lr_schedule,
                                                         verbose=1)
@@ -241,8 +257,8 @@ def main(job_dir, **args):
 
 
         # If you're resuming a previous training, set `initial_epoch` and `final_epoch` accordingly.
-        initial_epoch   = 0
-        final_epoch     = 120
+        initial_epoch   = 120
+        final_epoch     = 200
         steps_per_epoch = 500
 
         history = model.fit_generator(generator=train_generator,
@@ -253,7 +269,7 @@ def main(job_dir, **args):
                                       validation_steps=ceil(val_dataset_size/batch_size),
                                       initial_epoch=initial_epoch)
 
-        model_name = "vgg19BNReLUmodel.h5"
+        model_name = "vgg19BNmodel_cont.h5"
         model.save(model_name)
         with file_io.FileIO(model_name, mode='rb') as input_f:
             with file_io.FileIO("gs://deeplearningteam11/" + model_name, mode='w+') as output_f:
