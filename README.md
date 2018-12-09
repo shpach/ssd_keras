@@ -95,6 +95,42 @@ To train the original SSD300 model on Pascal VOC:
     └── ssd300_pascal_07+12_training_summary.md
 ```
 
+### Performance
+
+Here are the mAP evaluation results of the ported weights and below that the evaluation results of a model trained from scratch using this implementation. All models were evaluated using the official Pascal VOC test server (for 2012 `test`) or the official Pascal VOC Matlab evaluation script (for 2007 `test`). In all cases the results match (or slightly surpass) those of the original Caffe models. Download links to all ported weights are available further below.
+
+<table width="70%">
+  <tr>
+    <td></td>
+    <td colspan=3 align=center>Mean Average Precision</td>
+  </tr>
+  <tr>
+    <td>evaluated on</td>
+    <td colspan=2 align=center>VOC2007 test</td>
+    <td align=center>VOC2012 test</td>
+  </tr>
+  <tr>
+    <td>trained on<br>IoU rule</td>
+    <td align=center width="25%">07+12<br>0.5</td>
+    <td align=center width="25%">07+12+COCO<br>0.5</td>
+    <td align=center width="25%">07++12+COCO<br>0.5</td>
+  </tr>
+  <tr>
+    <td><b>SSD300</td>
+    <td align=center><b>77.5</td>
+    <td align=center><b>81.2</td>
+    <td align=center><b>79.4</td>
+  </tr>
+  <tr>
+    <td><b>SSD512</td>
+    <td align=center><b>79.8</td>
+    <td align=center><b>83.2</td>
+    <td align=center><b>82.3</td>
+  </tr>
+</table>
+
+
+
 #### Encoding and decoding boxes
 
 The [`ssd_encoder_decoder`](ssd_encoder_decoder) sub-package contains all functions and classes related to encoding and decoding boxes. Encoding boxes means converting ground truth labels into the target format that the loss function needs during training. It is this encoding process in which the matching of ground truth boxes to anchor boxes (the paper calls them default boxes and in the original C++ code they are called priors - all the same thing) happens. Decoding boxes means converting raw model output back to the input label format, which entails various conversion and filtering processes such as non-maximum suppression (NMS).
@@ -105,3 +141,18 @@ Models can be created in 'training' or 'inference' mode. In 'training' mode, the
 
 A note on the anchor box offset coordinates used internally by the model: This may or may not be obvious to you, but it is important to understand that it is not possible for the model to predict absolute coordinates for the predicted bounding boxes. In order to be able to predict absolute box coordinates, the convolutional layers responsible for localization would need to produce different output values for the same object instance at different locations within the input image. This isn't possible of course: For a given input to the filter of a convolutional layer, the filter will produce the same output regardless of the spatial position within the image because of the shared weights. This is the reason why the model predicts offsets to anchor boxes instead of absolute coordinates, and why during training, absolute ground truth coordinates are converted to anchor box offsets in the encoding process. The fact that the model predicts offsets to anchor box coordinates is in turn the reason why the model contains anchor box layers that do nothing but output the anchor box coordinates so that the model's output tensor can include those. If the model's output tensor did not contain the anchor box coordinates, the information to convert the predicted offsets back to absolute coordinates would be missing in the model output.
 
+### Examples
+
+Below are some prediction examples of the fully trained original SSD300 "07+12" model (i.e. trained on Pascal VOC2007 `trainval` and VOC2012 `trainval`). The predictions were made on Pascal VOC2007 `test`.
+
+| | |
+|---|---|
+| ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_05_no_gt.png) | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_04_no_gt.png) |
+| ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_01_no_gt.png) | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_02_no_gt.png) |
+
+Here are some prediction examples of an SSD7 (i.e. the small 7-layer version) partially trained on two road traffic datasets released by [Udacity](https://github.com/udacity/self-driving-car/tree/master/annotations) with roughly 20,000 images in total and 5 object categories (more info in [`ssd7_training.ipynb`](ssd7_training.ipynb)). The predictions you see below were made after 10,000 training steps at batch size 32. Admittedly, cars are comparatively easy objects to detect and I picked a few of the better examples, but it is nonetheless remarkable what such a small model can do after only 10,000 training iterations.
+
+| | |
+|---|---|
+| ![img01](./examples/ssd7_udacity_traffic_pred_01.png) | ![img01](./examples/ssd7_udacity_traffic_pred_02.png) |
+| ![img01](./examples/ssd7_udacity_traffic_pred_03.png) | ![img01](./examples/ssd7_udacity_traffic_pred_04.png) |
