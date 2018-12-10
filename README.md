@@ -1,5 +1,5 @@
-## SSD: Single-Shot MultiBox Detector implementation in Keras
-Original attempt: https://github.com/shpach/SSD-Experiments
+## SSD: Single-Shot MultiBox Detector Implementation in Keras
+<!-- Original attempt: https://github.com/shpach/SSD-Experiments -->
 ---
 ### Contents
 
@@ -188,7 +188,7 @@ gcloud ml-engine jobs submit training resume_model1_job --module-name=ssd_keras.
 
 ### Video Tracking
 
-In the video application, we use Kernel Correlation Filters between the frames to smoothen the output, avoid missing and overlap detections, etc. Our algorithm achieves two things, it performs a smoother object tracking for videos and it stores an object image with an ID to the local server. Please visit https://www.youtube.com/watch?v=UvZ9-yo7Xgg&feature=youtu.be to see our tracking algorithm in action.
+In the video application, we use Kernel Correlation Filters between the frames to smoothen the output, avoid missing and overlap detections, etc. Our algorithm achieves two things, it performs a smoother object tracking for videos and it stores an object image with an ID to the local server. Please visit https://www.youtube.com/watch?v=kzWk6Gs8vw0 to see our tracking algorithm in action.
 
 
 ### Examples
