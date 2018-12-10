@@ -141,6 +141,17 @@ Models can be created in 'training' or 'inference' mode. In 'training' mode, the
 
 A note on the anchor box offset coordinates used internally by the model: This may or may not be obvious to you, but it is important to understand that it is not possible for the model to predict absolute coordinates for the predicted bounding boxes. In order to be able to predict absolute box coordinates, the convolutional layers responsible for localization would need to produce different output values for the same object instance at different locations within the input image. This isn't possible of course: For a given input to the filter of a convolutional layer, the filter will produce the same output regardless of the spatial position within the image because of the shared weights. This is the reason why the model predicts offsets to anchor boxes instead of absolute coordinates, and why during training, absolute ground truth coordinates are converted to anchor box offsets in the encoding process. The fact that the model predicts offsets to anchor box coordinates is in turn the reason why the model contains anchor box layers that do nothing but output the anchor box coordinates so that the model's output tensor can include those. If the model's output tensor did not contain the anchor box coordinates, the information to convert the predicted offsets back to absolute coordinates would be missing in the model output.
 
+### Training on Google Cloud
+If you want to train on Google Cloud, you will need to port over this entire codebase to a Google Cloud bucket, as well as the training and validation data. Then, edit the training scripts to point to where your datasets exist. To actually run the job, you will have to provide the [`train_ssd.py`](train_ssd.py) script to the ML Engine. You also need to specify the path to your GPU config (we have given ours in this repository). Specifically, if you were in the parent directory to this repository. You could run:
+```bash
+gcloud ml-engine jobs submit training model1_job --module-name=ssd_keras.train_ssd --package-path=./ssd_keras --job-dir=gs://deeplearningteam11/logs --config=./ssd_keras/cloudml-gpu.yaml --python-version 3.5 --runtime-version 1.10 --region us-east1
+```
+
+If you wanted to resume training an existing model, you will need to change the range of epochs in which you will train the model in [`train_existing.py`](train_existing.py). Then, from the parent directory to this repository, you could run:
+```bash
+gcloud ml-engine jobs submit training resume_model1_job --module-name=ssd_keras.train_existing --package-path=./ssd_keras --job-dir=gs://deeplearningteam11/logs --config=./ssd_keras/cloudml-gpu.yaml --python-version 3.5 --runtime-version 1.10 --region us-east1
+```
+
 ### Examples
 
 Below are some prediction examples of the fully trained original SSD300 "07+12" model (i.e. trained on Pascal VOC2007 `trainval` and VOC2012 `trainval`). The predictions were made on Pascal VOC2007 `test`.
