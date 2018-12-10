@@ -157,5 +157,5 @@ Here are some prediction examples of an SSD7 (i.e. the small 7-layer version) pa
 
 | | |
 |---|---|
-| ![img01](./examples/ssd7_udacity_traffic_pred_01.png) | ![img01](./examples/ssd7_udacity_traffic_pred_02.png) |
-| ![img01](./examples/ssd7_udacity_traffic_pred_03.png) | ![img01](./examples/ssd7_udacity_traffic_pred_04.png) |
+| ![img01](./examples/videopic1.jpeg) | ![img01](./examples/videopic2.jpeg) |
+<!-- | ![img01](./examples/ssd7_udacity_traffic_pred_03.png) | ![img01](./examples/ssd7_udacity_traffic_pred_04.png) | -->
