@@ -102,30 +102,22 @@ Here are the mAP evaluation results of the ported weights and below that the eva
 <table width="70%">
   <tr>
     <td></td>
-    <td colspan=3 align=center>Mean Average Precision</td>
+    <td colspan=1 align=center>Mean Average Precision</td>
+    <td colspan=1 align=center>Training Loss</td>
   </tr>
   <tr>
     <td>evaluated on</td>
     <td colspan=2 align=center>VOC2007 test</td>
-    <td align=center>VOC2012 test</td>
   </tr>
   <tr>
-    <td>trained on<br>IoU rule</td>
-    <td align=center width="25%">07+12<br>0.5</td>
-    <td align=center width="25%">07+12+COCO<br>0.5</td>
-    <td align=center width="25%">07++12+COCO<br>0.5</td>
+    <td><b>Original SSD</td>
+    <td align=center><b>0.738</td>
+    <td align=center><b>3.9</td>
   </tr>
   <tr>
-    <td><b>SSD300</td>
-    <td align=center><b>77.5</td>
-    <td align=center><b>81.2</td>
-    <td align=center><b>79.4</td>
-  </tr>
-  <tr>
-    <td><b>SSD512</td>
-    <td align=center><b>79.8</td>
-    <td align=center><b>83.2</td>
-    <td align=center><b>82.3</td>
+    <td><b>Modernized SSD</td>
+    <td align=center><b>0.52</td>
+    <td align=center><b>4.72</td>
   </tr>
 </table>
 
