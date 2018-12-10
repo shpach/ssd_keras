@@ -106,7 +106,7 @@ Here are the mAP evaluation results of the ported weights and below that the eva
     <td colspan=1 align=center>Training Loss</td>
   </tr>
   <tr>
-    <td>evaluated on</td>
+    <td>Evaluated on</td>
     <td colspan=2 align=center>VOC2007 test</td>
   </tr>
   <tr>
@@ -150,8 +150,8 @@ Below are some prediction examples of the fully trained original SSD300 "07+12" 
 
 | | |
 |---|---|
-| ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_05_no_gt.png) | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_04_no_gt.png) |
-| ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_01_no_gt.png) | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_02_no_gt.png) |
+| ![img01](./examples/tvmonitor.jpg) | ![img01](./examples/multiple-bikes.jpg) |
+<!-- | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_01_no_gt.png) | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_02_no_gt.png) | -->
 
 Here are some prediction examples of an SSD7 (i.e. the small 7-layer version) partially trained on two road traffic datasets released by [Udacity](https://github.com/udacity/self-driving-car/tree/master/annotations) with roughly 20,000 images in total and 5 object categories (more info in [`ssd7_training.ipynb`](ssd7_training.ipynb)). The predictions you see below were made after 10,000 training steps at batch size 32. Admittedly, cars are comparatively easy objects to detect and I picked a few of the better examples, but it is nonetheless remarkable what such a small model can do after only 10,000 training iterations.
 
