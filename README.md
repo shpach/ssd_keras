@@ -3,11 +3,22 @@ Original attempt: https://github.com/shpach/SSD-Experiments
 ---
 ### Contents
 
+1. [Overview](#overview)
+2. [Training Details](#training-details)
+3. [Directory Structure](#directory-structure)
+4. [Experiments](#experiments)
+5. [Performance](#performance)
+6. [Training on Google Cloud](#training-on-google-cloud)
+7. [Video Tracking](#video-tracking)
+8. [Examples](#examples)
+9. [Acknowledgments](#acknowledgments)
+
+
 ### Overview
 
-This is a Keras port of the SSD model architecture introduced by Wei Liu et al. in the paper [SSD: Single Shot MultiBox Detector](https://arxiv.org/abs/1512.02325).
+This is a Keras port of the SSD model architecture introduced by Wei Liu et al. in the paper [SSD: Single Shot MultiBox Detector](https://arxiv.org/abs/1512.02325). We implement and extend the ideas presented in the original SSD paper and apply it to real-time object detection in videos.
 
-#### Training details
+### Training details
 
 To train the original SSD300 model on Pascal VOC:
 
@@ -20,7 +31,7 @@ To train the original SSD300 model on Pascal VOC:
 2. Download the weights for the convolutionalized VGG-16 or for one of the trained original models provided below.
 3. Set the file paths for the datasets and model weights accordingly in [`ssd300_training.ipynb`](ssd300_training.ipynb) and execute the cells.
 
-#### Directory Structure
+### Directory Structure
 
 ```bash
 .
@@ -95,8 +106,6 @@ To train the original SSD300 model on Pascal VOC:
     └── ssd300_pascal_07+12_training_summary.md
 ```
 
-
-
 ### Experiments
 
 We ran three major experiments.
@@ -113,15 +122,16 @@ This is the same idea as VGG19 SSD, except we replace the base network with Ince
 
 For our last major experiment, we went back to the VGG19 base network, but this time we added batch normalization layers in between the convolutional layers of the SSD specific network. On top of this, we added more aspect ratios combinations for the default boxes. Specifically, for every prediction layer, we had the aspect ratios: {1, 2, 1/2, 3, 1/3}. The original model only had these aspect ratios for the middle three layers. For the upper two feature maps that are used in the classifier, we added aspect ratios 4 and 1/4.
 
-#### Performance
+### Performance
 
-Here are the mAP evaluation results of the ported weights and below that the evaluation results of a model trained from scratch using this implementation. All models were evaluated using the official Pascal VOC test server (for 2012 `test`) or the official Pascal VOC Matlab evaluation script (for 2007 `test`). In all cases the results match (or slightly surpass) those of the original Caffe models. Download links to all ported weights are available further below.
+Following is a brief summary of the training comparisons of different models we tried. Our model with InceptionResNetV2 overfits aggressively, whereas the other two models are quite close to the original SSD in terms of training and validation loss. We provide the mAP evaluations for our best model, which we call "Modernized SSD", on the VOC2007 `test` dataset.
 
 <table width="70%">
   <tr>
     <td></td>
     <td colspan=1 align=center>Mean Average Precision</td>
     <td colspan=1 align=center>Training Loss</td>
+    <td colspan=1 align=center>Validation Loss</td>
   </tr>
   <tr>
     <td>Evaluated on</td>
@@ -131,27 +141,31 @@ Here are the mAP evaluation results of the ported weights and below that the eva
     <td><b>Original SSD</td>
     <td align=center><b>0.738</td>
     <td align=center><b>3.9</td>
+    <td align=center><b>4.6</td>
   </tr>
   <tr>
     <td><b>VGG19 SSD</td>
-    <td align=center><b>0.513</td>
+    <td align=center><b>N/A</td>
     <td align=center><b>5.09</td>
+    <td align=center><b>5.13</td>
   </tr>
   <tr>
     <td><b>InceptionResNetV2 SSD</td>
-    <td align=center><b>0.507</td>
+    <td align=center><b>N/A</td> 
+    <td align=center><b>5.07</td>
     <td align=center><b>83.36</td>
   </tr>
   <tr>
     <td><b>Modernized SSD</td>
     <td align=center><b>0.52</td>
     <td align=center><b>4.72</td>
+    <td align=center><b>4.76</td> 
   </tr>
 </table>
 
 
 
-#### Encoding and decoding boxes
+### Encoding and decoding boxes
 
 The [`ssd_encoder_decoder`](ssd_encoder_decoder) sub-package contains all functions and classes related to encoding and decoding boxes. Encoding boxes means converting ground truth labels into the target format that the loss function needs during training. It is this encoding process in which the matching of ground truth boxes to anchor boxes (the paper calls them default boxes and in the original C++ code they are called priors - all the same thing) happens. Decoding boxes means converting raw model output back to the input label format, which entails various conversion and filtering processes such as non-maximum suppression (NMS).
 
@@ -172,18 +186,27 @@ If you wanted to resume training an existing model, you will need to change the 
 gcloud ml-engine jobs submit training resume_model1_job --module-name=ssd_keras.train_existing --package-path=./ssd_keras --job-dir=gs://deeplearningteam11/logs --config=./ssd_keras/cloudml-gpu.yaml --python-version 3.5 --runtime-version 1.10 --region us-east1
 ```
 
+### Video Tracking
+
+In the video application, we use Kernel Correlation Filters between the frames to smoothen the output, avoid missing and overlap detections, etc. Our algorithm achieves two things, it performs a smoother object tracking for videos and it stores an object image with an ID to the local server. Please visit https://www.youtube.com/watch?v=UvZ9-yo7Xgg&feature=youtu.be to see our tracking algorithm in action.
+
+
 ### Examples
 
-Below are some prediction examples of the fully trained original SSD300 "07+12" model (i.e. trained on Pascal VOC2007 `trainval` and VOC2012 `trainval`). The predictions were made on Pascal VOC2007 `test`.
+Below are some prediction examples of the fully trained Modernized SSD300 model (i.e. trained on Pascal VOC2007 `trainval`). The predictions were made on Pascal VOC2007 `test`.
 
 | | |
 |---|---|
 | ![img01](./examples/tvmonitor.jpeg) | ![img01](./examples/multiple-bikes.jpeg) |
 <!-- | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_01_no_gt.png) | ![img01](./examples/trained_ssd300_pascalVOC2007_test_pred_02_no_gt.png) | -->
 
-Here are some prediction examples of an SSD7 (i.e. the small 7-layer version) partially trained on two road traffic datasets released by [Udacity](https://github.com/udacity/self-driving-car/tree/master/annotations) with roughly 20,000 images in total and 5 object categories. The predictions you see below were made after 10,000 training steps at batch size 32. Admittedly, cars are comparatively easy objects to detect and I picked a few of the better examples, but it is nonetheless remarkable what such a small model can do after only 10,000 training iterations.
+Following are some snapshots from our video tracking example.
 
 | | |
 |---|---|
 | ![img01](./examples/videopic1.jpeg) | ![img01](./examples/videopic2.jpeg) |
 <!-- | ![img01](./examples/ssd7_udacity_traffic_pred_03.png) | ![img01](./examples/ssd7_udacity_traffic_pred_04.png) | -->
+
+### Acknowledgments
+
+We thank Professor Iddo Drori and Chenqin Xu for their guidance, as well as funding our research. We also thank Wei Liu for his original contributions to creating the SSD architecture.
