@@ -95,7 +95,25 @@ To train the original SSD300 model on Pascal VOC:
     └── ssd300_pascal_07+12_training_summary.md
 ```
 
-### Performance
+
+
+### Experiments
+
+We ran three major experiments.
+
+#### VGG19 SSD
+
+We replace the VGG16 base network from authors’ implementation with a VGG19 network. By using a more complex model, we expect to gain more representational power and thus better image classification. We keep the same multiscale feature maps except for conv4_3 of VGG16, which we replace with conv4_4 from VGG19. We also want to tweak the weights in the base network to better suit the problem of object detection, so we fine-tune these weights with a learning rate of 0.001 using Adam.
+
+#### InceptionResNetV2 SSD
+
+This is the same idea as VGG19 SSD, except we replace the base network with InceptionResNetV2. Since the model is much more complex than VGG19, we freeze the weights to avoid the complexity of training so many parameters. 
+
+#### Modernized SSD
+
+For our last major experiment, we went back to the VGG19 base network, but this time we added batch normalization layers in between the convolutional layers of the SSD specific network. On top of this, we added more aspect ratios combinations for the default boxes. Specifically, for every prediction layer, we had the aspect ratios: {1, 2, 1/2, 3, 1/3}. The original model only had these aspect ratios for the middle three layers. For the upper two feature maps that are used in the classifier, we added aspect ratios 4 and 1/4.
+
+#### Performance
 
 Here are the mAP evaluation results of the ported weights and below that the evaluation results of a model trained from scratch using this implementation. All models were evaluated using the official Pascal VOC test server (for 2012 `test`) or the official Pascal VOC Matlab evaluation script (for 2007 `test`). In all cases the results match (or slightly surpass) those of the original Caffe models. Download links to all ported weights are available further below.
 
