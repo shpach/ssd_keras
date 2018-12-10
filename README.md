@@ -115,6 +115,16 @@ Here are the mAP evaluation results of the ported weights and below that the eva
     <td align=center><b>3.9</td>
   </tr>
   <tr>
+    <td><b>VGG19 SSD</td>
+    <td align=center><b>0.513</td>
+    <td align=center><b>5.09</td>
+  </tr>
+  <tr>
+    <td><b>InceptionResNetV2 SSD</td>
+    <td align=center><b>0.507</td>
+    <td align=center><b>83.36</td>
+  </tr>
+  <tr>
     <td><b>Modernized SSD</td>
     <td align=center><b>0.52</td>
     <td align=center><b>4.72</td>
